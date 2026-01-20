@@ -1,0 +1,241 @@
+.video-lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.video-lobby h2 {
+  margin: 0;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.join-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: inherit;
+  font-size: 1rem;
+}
+
+.join-form button {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+.join-form .create-btn {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.join-form .create-btn:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #444;
+}
+
+.available-rooms {
+  width: 100%;
+  max-width: 400px;
+}
+
+.rooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rooms-header h3 {
+  margin: 0;
+}
+
+.refresh-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.room-item:hover {
+  background: #3a3a3a;
+}
+
+.room-name {
+  font-weight: 500;
+}
+
+.room-type {
+  font-size: 0.8rem;
+  color: #888;
+  padding: 0.25rem 0.5rem;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.no-rooms {
+  color: #666;
+  text-align: center;
+}
+
+.error {
+  color: #ff4444;
+}
+
+/* Video Room */
+.video-room {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+}
+
+.video-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.video-header h3 {
+  margin: 0;
+}
+
+.participant-count {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.video-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0 1rem;
+  min-height: 0;
+}
+
+.video-container {
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-element video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-label {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.waiting-message {
+  color: #666;
+  text-align: center;
+}
+
+.video-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  margin: 0 1rem;
+}
+
+.video-controls button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  min-width: 120px;
+}
+
+.video-controls button.disabled {
+  background: #ff4444;
+  border-color: #ff4444;
+}
+
+.video-controls .leave-btn {
+  background: #ff4444;
+  border-color: #ff4444;
+}
+
+.video-controls .leave-btn:hover {
+  background: #ff6666;
+  border-color: #ff6666;
+}
+
+@media (max-width: 768px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-controls {
+    flex-wrap: wrap;
+  }
+
+  .video-controls button {
+    flex: 1;
+    min-width: 100px;
+  }
+}
