@@ -148,9 +148,7 @@
 
 .video-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  position: relative;
   padding: 0 1rem;
   min-height: 0;
 }
@@ -163,6 +161,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.video-container.remote {
+  width: 100%;
+  height: 100%;
+}
+
+.video-container.local {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 200px;
+  height: 150px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .video-element {
@@ -226,8 +239,11 @@
 }
 
 @media (max-width: 768px) {
-  .video-grid {
-    grid-template-columns: 1fr;
+  .video-container.local {
+    width: 120px;
+    height: 90px;
+    bottom: 0.5rem;
+    right: 0.5rem;
   }
 
   .video-controls {

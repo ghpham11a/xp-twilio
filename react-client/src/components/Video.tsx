@@ -330,11 +330,6 @@ export function VideoChat() {
       </div>
 
       <div className="video-grid">
-        <div className="video-container local">
-          <div ref={localVideoRef} className="video-element" />
-          <span className="video-label">You ({identity})</span>
-        </div>
-
         <div className="video-container remote">
           <div ref={remoteVideoRef} className="video-element" />
           {room.participants.size === 0 && (
@@ -342,6 +337,11 @@ export function VideoChat() {
               Waiting for others to join...
             </div>
           )}
+        </div>
+
+        <div className="video-container local">
+          <div ref={localVideoRef} className="video-element" />
+          <span className="video-label">You ({identity})</span>
         </div>
       </div>
 
