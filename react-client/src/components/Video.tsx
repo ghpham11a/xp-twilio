@@ -21,10 +21,12 @@ export function VideoChat() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [availableRooms, setAvailableRooms] = useState<RoomData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
+  const [localTracks, setLocalTracks] = useState<LocalTrack[]>([]);
 
   const localVideoRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useRef<HTMLDivElement>(null);
+  const roomRef = useRef<Room | null>(null);
+  const localTracksRef = useRef<LocalTrack[]>([]);
 
   const loadRooms = async () => {
     try {
@@ -41,13 +43,14 @@ export function VideoChat() {
 
   // Attach local video track when ref becomes available (after room UI renders)
   useEffect(() => {
-    if (localVideoTrack && localVideoRef.current) {
+    const videoTrack = localTracks.find(track => track.kind === 'video') as LocalVideoTrack | undefined;
+    if (videoTrack && localVideoRef.current) {
       // Clear any existing video elements first
       localVideoRef.current.innerHTML = '';
-      const element = localVideoTrack.attach();
+      const element = videoTrack.attach();
       localVideoRef.current.appendChild(element);
     }
-  }, [localVideoTrack, room]); // room dependency ensures this runs after room UI renders
+  }, [localTracks, room]); // room dependency ensures this runs after room UI renders
 
   const attachTrack = useCallback((track: RemoteTrack, container: HTMLDivElement) => {
     if (track.kind === "video" || track.kind === "audio") {
@@ -125,11 +128,8 @@ export function VideoChat() {
         return;
       }
 
-      // Store local video track for attachment after room UI renders
-      const videoTrack = localTracks.find(track => track.kind === 'video') as LocalVideoTrack | undefined;
-      if (videoTrack) {
-        setLocalVideoTrack(videoTrack);
-      }
+      // Store local tracks for attachment and cleanup
+      setLocalTracks(localTracks);
 
       // Create room on backend first (may already exist)
       try {
@@ -199,10 +199,9 @@ export function VideoChat() {
       room.disconnect();
       setRoom(null);
     }
-    if (localVideoTrack) {
-      localVideoTrack.stop();
-      setLocalVideoTrack(null);
-    }
+    // Stop all local tracks (audio and video)
+    localTracks.forEach(track => track.stop());
+    setLocalTracks([]);
   };
 
   const toggleAudio = () => {
@@ -233,16 +232,25 @@ export function VideoChat() {
     }
   };
 
+  // Keep refs in sync with state for cleanup purposes
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
+
+  useEffect(() => {
+    localTracksRef.current = localTracks;
+  }, [localTracks]);
+
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
-      if (room) {
-        room.disconnect();
+      if (roomRef.current) {
+        roomRef.current.disconnect();
       }
-      if (localVideoTrack) {
-        localVideoTrack.stop();
-      }
+      // Stop all local tracks (audio and video)
+      localTracksRef.current.forEach(track => track.stop());
     };
-  }, [room, localVideoTrack]);
+  }, []);
 
   if (!room) {
     return (
