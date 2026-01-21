@@ -38,10 +38,16 @@ export function Chat() {
 
       // Wait for client to be connected
       await new Promise<void>((resolve, reject) => {
-        twilioClient.on("connectionStateChanged", (state) => {
-          if (state === "connected") resolve();
-          if (state === "failed") reject(new Error("Connection failed"));
-        });
+        const onStateChange = (state) => {
+          if (state === "connected") {
+            twilioClient.removeListener("connectionStateChanged", onStateChange);
+            resolve();
+          } else if (state === "disconnected") {
+            twilioClient.removeListener("connectionStateChanged", onStateChange);
+            reject(new Error("Connection failed"));
+          }
+        };
+        twilioClient.on("connectionStateChanged", onStateChange);
       });
 
       setClient(twilioClient);

@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Video, {
+  createLocalTracks,
   type Room,
   type LocalVideoTrack,
   type LocalAudioTrack,
+  type LocalTrack,
   type RemoteParticipant,
   type RemoteTrack,
   type RemoteTrackPublication,
@@ -19,6 +21,7 @@ export function VideoChat() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [availableRooms, setAvailableRooms] = useState<RoomData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
 
   const localVideoRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useRef<HTMLDivElement>(null);
@@ -35,6 +38,16 @@ export function VideoChat() {
   useEffect(() => {
     loadRooms();
   }, []);
+
+  // Attach local video track when ref becomes available (after room UI renders)
+  useEffect(() => {
+    if (localVideoTrack && localVideoRef.current) {
+      // Clear any existing video elements first
+      localVideoRef.current.innerHTML = '';
+      const element = localVideoTrack.attach();
+      localVideoRef.current.appendChild(element);
+    }
+  }, [localVideoTrack, room]); // room dependency ensures this runs after room UI renders
 
   const attachTrack = useCallback((track: RemoteTrack, container: HTMLDivElement) => {
     if (track.kind === "video" || track.kind === "audio") {
@@ -85,7 +98,39 @@ export function VideoChat() {
     setIsConnecting(true);
     setError(null);
 
+    let localTracks: LocalTrack[] = [];
+
     try {
+      // Create local tracks first (this also handles permissions)
+      try {
+        localTracks = await createLocalTracks({
+          audio: true,
+          video: { width: 640 },
+        });
+      } catch (err) {
+        if (err instanceof Error) {
+          if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+            setError("Camera/microphone access denied. Please allow permissions in your browser settings and refresh the page.");
+          } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+            setError("No camera or microphone found. Please connect a device and try again.");
+          } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+            setError("Camera or microphone is already in use by another application.");
+          } else {
+            setError(`Media access error: ${err.message}`);
+          }
+        } else {
+          setError("Failed to access camera/microphone.");
+        }
+        setIsConnecting(false);
+        return;
+      }
+
+      // Store local video track for attachment after room UI renders
+      const videoTrack = localTracks.find(track => track.kind === 'video') as LocalVideoTrack | undefined;
+      if (videoTrack) {
+        setLocalVideoTrack(videoTrack);
+      }
+
       // Create room on backend first (may already exist)
       try {
         await createRoom(name);
@@ -96,23 +141,14 @@ export function VideoChat() {
       // Get access token
       const { token } = await getVideoToken(identity, name);
 
-      // Connect to room
+      // Connect to room with our pre-created tracks
       const videoRoom = await Video.connect(token, {
         name: name,
-        audio: true,
-        video: { width: 640 },
+        tracks: localTracks,
       });
 
       setRoom(videoRoom);
       setRoomName(name);
-
-      // Attach local tracks
-      videoRoom.localParticipant.videoTracks.forEach((publication) => {
-        if (publication.track && localVideoRef.current) {
-          const element = publication.track.attach();
-          localVideoRef.current.appendChild(element);
-        }
-      });
 
       // Handle existing participants
       videoRoom.participants.forEach(handleParticipantConnected);
@@ -163,6 +199,10 @@ export function VideoChat() {
       room.disconnect();
       setRoom(null);
     }
+    if (localVideoTrack) {
+      localVideoTrack.stop();
+      setLocalVideoTrack(null);
+    }
   };
 
   const toggleAudio = () => {
@@ -198,8 +238,11 @@ export function VideoChat() {
       if (room) {
         room.disconnect();
       }
+      if (localVideoTrack) {
+        localVideoTrack.stop();
+      }
     };
-  }, [room]);
+  }, [room, localVideoTrack]);
 
   if (!room) {
     return (
